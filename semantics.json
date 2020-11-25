@@ -76,7 +76,8 @@
                       "H5P.TwitterUserFeed 1.0",
                       "H5P.AudioRecorder 1.0",
                       "H5P.Dictation 1.0",
-                      "H5P.Essay 1.2"
+                      "H5P.Essay 1.2",
+                      "H5P.AdvancedBlanks 1.0"
                     ],
                     "optional": true
                   },
