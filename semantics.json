@@ -696,20 +696,28 @@
     "optional": true,
     "fields": [
       {
+        "name": "linearNavigation",
+        "type": "boolean",
+        "label": "Linear navigation",
+        "importance": "low",
+        "description": "Enable linear navigation. Users cannot go back to previous slide.",
+        "default": false
+      },
+      {
+        "name": "removeCheckAnswer",
+        "type": "boolean",
+        "label": "Remove Check Answer",
+        "importance": "low",
+        "description": "This option determines whether \"Check\" button should be removed.",
+        "default": false
+      },
+      {
         "name": "activeSurface",
         "type": "boolean",
         "widget": "disposableBoolean",
         "label": "Activate Active Surface Mode",
         "importance": "low",
         "description": "Removes navigation controls for the end user. Use Go To Slide to navigate.",
-        "default": false
-      },
-      {
-        "name": "linearNavigation",
-        "type": "boolean",
-        "label": "Linear navigation",
-        "importance": "low",
-        "description": "Enable linear navigation. Users cannot go back to previous slide.",
         "default": false
       },
       {

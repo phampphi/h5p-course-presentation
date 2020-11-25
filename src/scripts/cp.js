@@ -93,8 +93,9 @@ let CoursePresentation = function (params, id, extras) {
   }, params.l10n !== undefined ? params.l10n : {});
 
   if (!!params.override) {
+    this.linearNavigation = params.override.linearNavigation;
+    this.removeCheckAnswer = params.override.removeCheckAnswer;
     this.activeSurface = !!params.override.activeSurface;
-    this.linearNavigation = !!params.override.linearNavigation;
     this.hideSummarySlide = !!params.override.hideSummarySlide;
     this.enablePrintButton = !!params.override.enablePrintButton;
     this.showSummarySlideSolutionButton = params.override.summarySlideSolutionButton !== undefined
@@ -1786,7 +1787,9 @@ CoursePresentation.prototype.jumpToSlide = function (slideNumber, noScroll = fal
 
   // Attach elements for this slide
   this.attachElements(this.$current, slideNumber);
-
+  if (this.removeCheckAnswer)
+    $(".h5p-question-check-answer").remove();
+  
   this.resetSlideTimer(this.$container);
 
   // Attach elements for next slide
