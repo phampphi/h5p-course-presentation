@@ -697,6 +697,14 @@
         "default": false
       },
       {
+        "name": "linearNavigation",
+        "type": "boolean",
+        "label": "Linear navigation",
+        "importance": "low",
+        "description": "Enable linear navigation. Users cannot go back to previous slide.",
+        "default": false
+      },
+      {
         "name": "hideSummarySlide",
         "type": "boolean",
         "label": "Hide Summary Slide",

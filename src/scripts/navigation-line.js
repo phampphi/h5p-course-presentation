@@ -1,7 +1,7 @@
-import Printer from './printer';
 import Controls from 'h5p-lib-controls/src/scripts/controls';
 import UIKeyboard from 'h5p-lib-controls/src/scripts/ui/keyboard';
-import { defaultValue, contains, isFunction, addClickAndKeyboardListeners, isIOS } from './utils';
+import Printer from './printer';
+import { addClickAndKeyboardListeners, contains, defaultValue, isFunction, isIOS } from './utils';
 
 /**
  * Enum indicating which state a navigation bar part is in
@@ -117,16 +117,18 @@ const NavigationLine = (function ($) {
         .appendTo(that.cp.$progressbar);
 
       // create link
-      const $link = $('<a>', {
-        href: '#',
-        html: '<span class="h5p-progressbar-part-title hidden-but-read">' + progressbarPartTitle + '</span>',
-        tabindex: '-1'
-      }).data('slideNumber', i)
-        .click(clickProgressbar)
-        .appendTo($li);
+      let $link;
+      if (this.cp.isEditor() || !this.cp.linearNavigation) {
+        $link = $('<a>', {
+          href: '#',
+          html: '<span class="h5p-progressbar-part-title hidden-but-read">' + progressbarPartTitle + '</span>',
+          tabindex: '-1'
+        }).data('slideNumber', i)
+          .click(clickProgressbar)
+          .appendTo($li);
 
-      this.progresbarKeyboardControls.addElement($link.get(0));
-
+        this.progresbarKeyboardControls.addElement($link.get(0));
+      }
       // Add hover effect if not an ipad or iphone.
       if (!isIOS) {
         // create popup
@@ -161,7 +163,7 @@ const NavigationLine = (function ($) {
         var hasTask = slidesWithSolutions[i] && slidesWithSolutions[i].length > 0;
         var isAnswered = !!(that.cp.previousState && that.cp.previousState.answered && that.cp.previousState.answered[i]);
 
-        if (hasTask) {
+        if (hasTask && !!$link) {
           // Add task indicator
           $('<div>', {
             'class': 'h5p-progressbar-part-has-task'
@@ -429,7 +431,7 @@ const NavigationLine = (function ($) {
    */
   NavigationLine.prototype.updateProgressBar = function (slideNumber, prevSlideNumber, solutionMode) {
     var that = this;
-
+      
     // Updates progress bar progress (blue line)
     var i;
     for (i = 0; i < that.cp.progressbarParts.length; i += 1) {
@@ -580,9 +582,14 @@ const NavigationLine = (function ($) {
   NavigationLine.prototype.toggleNextAndPreviousButtonDisabled = function (index) {
     const lastSlideIndex = this.cp.slides.length - 1;
 
-    this.cp.$prevSlideButton.attr('aria-disabled', (index === 0).toString());
+    if (!this.cp.isEditor() && this.cp.linearNavigation){
+      this.cp.$prevSlideButton.attr('aria-disabled', 'true');
+      this.cp.$prevSlideButton.attr('tabindex', '-1');
+    }else{
+      this.cp.$prevSlideButton.attr('aria-disabled', (index === 0).toString());
+      this.cp.$prevSlideButton.attr('tabindex', (index === 0) ? '-1' : '0');
+    }
     this.cp.$nextSlideButton.attr('aria-disabled', (index === lastSlideIndex).toString());
-    this.cp.$prevSlideButton.attr('tabindex', (index === 0) ? '-1' : '0');
     this.cp.$nextSlideButton.attr('tabindex', (index === lastSlideIndex) ? '-1' : '0');
   };
 

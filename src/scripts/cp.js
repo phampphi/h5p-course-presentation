@@ -94,6 +94,7 @@ let CoursePresentation = function (params, id, extras) {
 
   if (!!params.override) {
     this.activeSurface = !!params.override.activeSurface;
+    this.linearNavigation = !!params.override.linearNavigation;
     this.hideSummarySlide = !!params.override.hideSummarySlide;
     this.enablePrintButton = !!params.override.enablePrintButton;
     this.showSummarySlideSolutionButton = params.override.summarySlideSolutionButton !== undefined
@@ -862,6 +863,9 @@ CoursePresentation.prototype.focus = function () {
  * @param {number} index
  */
 CoursePresentation.prototype.keywordClick = function (index) {
+  if (this.linearNavigation)
+    return;
+    
   if (this.shouldHideKeywordsAfterSelect()) {
     // Auto-hide keywords list
     this.hideKeywords();
@@ -1694,6 +1698,8 @@ CoursePresentation.prototype.previousSlide = function (noScroll) {
   if (!$prev.length) {
     return false;
   }
+  if (this.linearNavigation)
+    return false;
 
   return this.jumpToSlide($prev.index(), noScroll, false);
 };
