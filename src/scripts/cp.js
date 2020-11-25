@@ -481,6 +481,8 @@ CoursePresentation.prototype.attach = function ($container) {
   if (this.previousState && this.previousState.progress) {
     this.jumpToSlide(this.previousState.progress);
   }
+  else
+    this.activateAudioRecorder(0);
 };
 
 /**
@@ -919,6 +921,7 @@ CoursePresentation.prototype.setElementsOverride = function (override) {
  */
 CoursePresentation.prototype.attachElements = function ($slide, index) {
   if (this.elementsAttached[index] !== undefined) {
+    this.activateAudioRecorder(index);
     return; // Already attached
   }
 
@@ -936,6 +939,7 @@ CoursePresentation.prototype.attachElements = function ($slide, index) {
   }, {'bubbles': true, 'external': true});
 
   this.elementsAttached[index] = true;
+  this.activateAudioRecorder(index);
 };
 
 /**
@@ -1012,7 +1016,6 @@ CoursePresentation.prototype.attachElement = function (element, instance, $slide
         instance.on('controls', handleIV);
       }
     }
-
     // For first slide
     this.setOverflowTabIndex();
   }
@@ -1033,6 +1036,25 @@ CoursePresentation.prototype.attachElement = function (element, instance, $slide
 
   return $elementContainer;
 };
+
+CoursePresentation.prototype.activateAudioRecorder = function(index){
+  if (!this.isCurrentSlide(index))
+    return;
+
+  let slide = this.slides[index];
+  let instances = this.elementInstances[index];
+  // activate the current slide's audio recorder
+  if (slide.elements !== undefined) {
+    for (var i = 0; i < slide.elements.length; i++) {
+      let element = slide.elements[i];
+      let instance = instances[i];
+      if (element.action !== undefined && element.action.library.substr(0, 17) === 'H5P.AudioRecorder'
+          && instance.activated !== undefined 
+          && (instance.activated instanceof Function || typeof instance.activated === 'function')) 
+        instance.activated();
+    }
+  }
+}
 
 /**
  * Disables tab indexes behind a popup container

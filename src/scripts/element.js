@@ -26,6 +26,7 @@ function Element(parameters) {
     if (self.parent.parent.isEditor()) {
       // Clone the whole tree to avoid libraries accidentally changing params while running.
       library = H5P.jQuery.extend(true, {}, parameters.action, self.parent.parent.elementsOverride);
+      library.params.isEditor = true;
     }
     else {
       // Add defaults
