@@ -1,11 +1,11 @@
 import Parent from 'h5p-parent';
-import SummarySlide from './summary-slide';
+import { jQuery as $ } from './globals';
+import KeywordsMenu from './keyword-menu';
 import NavigationLine from './navigation-line';
 import SlideBackground from './slide-backgrounds';
-import KeywordsMenu from './keyword-menu';
-import { jQuery as $ } from './globals';
-import { flattenArray, addClickAndKeyboardListeners, isFunction, kebabCase, stripHTML, keyCode } from './utils';
 import Slide from './slide.js';
+import SummarySlide from './summary-slide';
+import { addClickAndKeyboardListeners, flattenArray, isFunction, kebabCase, keyCode, stripHTML } from './utils';
 
 /**
  * @const {string}
@@ -192,6 +192,49 @@ CoursePresentation.prototype.slideHasAnsweredTask = function (index) {
     .some(task => task.getAnswerGiven());
 };
 
+CoursePresentation.prototype.initTimer = function ($container) {
+  if (this.isEditor())
+    return;
+
+  let timerDiv = $container.find('.h5p-timer');
+  if (timerDiv === undefined)
+    return;
+  let cpTimer = new H5P.Timer();
+  cpTimer.setMode(H5P.Timer.BACKWARD);
+  cpTimer.setClockTime('1:30');
+
+  cpTimer.notify('every_second', function() { timerDiv.html(H5P.Timer.toTimecode(cpTimer.getTime())); });
+  cpTimer.play();
+}
+
+CoursePresentation.prototype.resetSlideTimer = function ($container) {
+  if (this.isEditor())
+    return;
+
+  var that = this;
+
+  let slideTimerDiv = $container.find('.h5p-slide-timer');
+  if (slideTimerDiv === undefined)
+    return;
+
+  if (this.slideTimer === undefined){
+    this.slideTimer = new H5P.Timer();
+    this.slideTimer.setMode(H5P.Timer.BACKWARD);
+  }else{
+    this.slideTimer.stop();
+    this.slideTimer.reset();
+  }
+
+  this.slideTimer.setClockTime('0:10');
+  this.slideTimer.notify('every_second', function() { slideTimerDiv.html(H5P.Timer.toTimecode(that.slideTimer.getTime())); });
+  this.slideTimer.play();
+
+  this.slideTimer.on('stop', function() {
+    if (this.slideTimer.getTime() <= 0 && this.currentSlideIndex < this.slides.length - 1)
+      this.jumpToSlide(this.currentSlideIndex + 1);
+  }.bind(this));
+}
+
 /**
  * Render the presentation inside the given container.
  *
@@ -207,6 +250,7 @@ CoursePresentation.prototype.attach = function ($container) {
   }
 
   var html =
+          '<div class="h5p-timer"></div>' +
           '<div class="h5p-keymap-explanation hidden-but-read">' + this.l10n.accessibilitySlideNavigationExplanation + '</div>' +
           '<div class="h5p-fullscreen-announcer hidden-but-read" aria-live="polite"></div>' +
           '<div class="h5p-wrapper" tabindex="0" aria-label="' + this.l10n.accessibilityCanvasLabel + '">' +
@@ -216,6 +260,7 @@ CoursePresentation.prototype.attach = function ($container) {
           '    <div class="h5p-presentation-wrapper">' +
           '      <div class="h5p-keywords-wrapper"></div>' +
           '     <div class="h5p-slides-wrapper"></div>' +
+          '     <div class="h5p-slide-timer"></div>' +
           '    </div>' +
           '  </div>' +
           '  <nav class="h5p-cp-navigation">' +
@@ -323,6 +368,9 @@ CoursePresentation.prototype.attach = function ($container) {
 
   // Create slides and retrieve keyword title details
   this.createSlides();
+
+  this.initTimer(this.$container);
+  this.resetSlideTimer(this.$container);
 
   // We have always attached all elements on current slide
   this.elementsAttached[this.currentSlideIndex] = true;
@@ -1723,6 +1771,8 @@ CoursePresentation.prototype.jumpToSlide = function (slideNumber, noScroll = fal
 
   // Attach elements for this slide
   this.attachElements(this.$current, slideNumber);
+
+  this.resetSlideTimer(this.$container);
 
   // Attach elements for next slide
   var $nextSlide = this.$current.next();
