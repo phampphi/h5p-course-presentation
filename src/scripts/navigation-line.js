@@ -285,12 +285,13 @@ const NavigationLine = (function ($) {
       'html': '<span class="h5p-icon-menu"></span><span class="current-slide-title"></span>'
     }).appendTo($leftFooter);
 
-    addClickAndKeyboardListeners(this.cp.$keywordsButton, event => {
-      if (!that.cp.presentation.keywordListAlwaysShow) {
-        that.cp.toggleKeywords();
-        event.stopPropagation();
-      }
-    });
+    if (this.cp.isEditor() || !this.cp.linearNavigation)
+      addClickAndKeyboardListeners(this.cp.$keywordsButton, event => {
+        if (!that.cp.presentation.keywordListAlwaysShow) {
+          that.cp.toggleKeywords();
+          event.stopPropagation();
+        }
+      });
 
     if (this.cp.presentation.keywordListAlwaysShow || !this.cp.initKeywords) {
       this.cp.$keywordsButton.hide();

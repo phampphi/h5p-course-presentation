@@ -827,7 +827,7 @@
 
 .h5p-timer-wrapper{
   text-align: right;
-  font-size: 1.5em;
+  font-size: larger;
 }
 .h5p-slide-timer::before {
   content: "\1F551";
