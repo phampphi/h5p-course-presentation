@@ -254,6 +254,18 @@
                   "optional": true
                 }
               ]
+            },
+            {
+              "name": "slideTime",
+              "type": "number",
+              "widget": "timecode",
+              "label": "Time Limit",
+              "importance": "low",
+              "description": "The total amount of time that user can interact with the slide.",
+              "optional": true,
+              "min": 0,
+              "max": 3600,
+              "default": 0
             }
           ]
         }
@@ -639,6 +651,28 @@
         "type": "text",
         "label": "Exited fullscreen announcement for assistive technologies",
         "default": "Exited fullscreen"
+      }
+    ]
+  },
+  {
+    "name": "timeLimit",
+    "type": "group",
+    "label": "Time settings.",
+    "importance": "low",
+    "description": "These options will let you specify time limit.",
+    "optional": true,
+    "fields": [
+      {
+        "name": "totalTime",
+        "type": "number",
+        "widget": "timecode",
+        "label": "Total Time",
+        "importance": "low",
+        "description": "The total amount of time that user can interact with the presentation.",
+        "optional": true,
+        "min": 0,
+        "max": 7200,
+        "default": 0
       }
     ]
   },

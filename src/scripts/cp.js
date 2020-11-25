@@ -116,7 +116,10 @@ let CoursePresentation = function (params, id, extras) {
       this.googleShareUrl = params.override.social.googleShareUrl;
     }
   }
-
+  if (!!params.timeLimit) {
+    this.totalTime = params.timeLimit;
+  }
+  
   this.keywordMenu = new KeywordsMenu({
     l10n : this.l10n,
     currentIndex: this.previousState !== undefined ? this.previousState.progress : 0
@@ -193,7 +196,7 @@ CoursePresentation.prototype.slideHasAnsweredTask = function (index) {
 };
 
 CoursePresentation.prototype.initTimer = function ($container) {
-  if (this.isEditor())
+  if (this.isEditor() || this.totalTime === undefined || this.totalTime === 0)
     return;
 
   let timerDiv = $container.find('.h5p-timer');
@@ -201,7 +204,7 @@ CoursePresentation.prototype.initTimer = function ($container) {
     return;
   let cpTimer = new H5P.Timer();
   cpTimer.setMode(H5P.Timer.BACKWARD);
-  cpTimer.setClockTime('1:30');
+  cpTimer.setClockTime(this.totalTime * 1000);
 
   cpTimer.notify('every_second', function() { timerDiv.html(H5P.Timer.toTimecode(cpTimer.getTime())); });
   cpTimer.play();
@@ -213,6 +216,10 @@ CoursePresentation.prototype.resetSlideTimer = function ($container) {
 
   var that = this;
 
+  let slideTime = this.slides[this.currentSlideIndex].slideTime;
+  if (slideTime === undefined)
+    return;
+    
   let slideTimerDiv = $container.find('.h5p-slide-timer');
   if (slideTimerDiv === undefined)
     return;
@@ -223,9 +230,10 @@ CoursePresentation.prototype.resetSlideTimer = function ($container) {
   }else{
     this.slideTimer.stop();
     this.slideTimer.reset();
+    slideTimerDiv.html('');
   }
-
-  this.slideTimer.setClockTime('0:10');
+  
+  this.slideTimer.setClockTime(slideTime * 1000);
   this.slideTimer.notify('every_second', function() { slideTimerDiv.html(H5P.Timer.toTimecode(that.slideTimer.getTime())); });
   this.slideTimer.play();
 
