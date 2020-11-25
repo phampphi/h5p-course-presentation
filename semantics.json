@@ -73,7 +73,11 @@
                       "H5P.ExportableTextArea 1.3",
                       "H5P.Table 1.1",
                       "H5P.InteractiveVideo 1.22",
-                      "H5P.TwitterUserFeed 1.0"
+                      "H5P.TwitterUserFeed 1.0",
+                      "H5P.AudioRecorder 1.0",
+                      "H5P.Dictation 1.0",
+                      "H5P.Essay 1.2",
+                      "H5P.AdvancedBlanks 1.0"
                     ],
                     "optional": true
                   },
@@ -254,6 +258,18 @@
                   "optional": true
                 }
               ]
+            },
+            {
+              "name": "slideTime",
+              "type": "number",
+              "widget": "timecode",
+              "label": "Time Limit",
+              "importance": "low",
+              "description": "The total amount of time that user can interact with the slide.",
+              "optional": true,
+              "min": 0,
+              "max": 3600,
+              "default": 0
             }
           ]
         }
@@ -643,6 +659,36 @@
     ]
   },
   {
+    "name": "timeSetting",
+    "type": "group",
+    "label": "Time settings.",
+    "importance": "low",
+    "description": "These options will let you specify time limit.",
+    "optional": true,
+    "fields": [
+      {
+        "name": "totalTime",
+        "type": "number",
+        "widget": "timecode",
+        "label": "Total Time",
+        "importance": "low",
+        "description": "The total amount of time that user can interact with the presentation.",
+        "optional": true,
+        "min": 0,
+        "max": 7200,
+        "default": 0
+      },
+      {
+        "name": "timeupMessage",
+        "type": "text",
+        "label": "Time-up Message",
+        "importance": "low",
+        "description": "The message to be displayed when the time is up.",
+        "optional": true
+      }
+    ]
+  },
+  {
     "name": "override",
     "type": "group",
     "label": "Behaviour settings.",
@@ -650,6 +696,22 @@
     "description": "These options will let you override behaviour settings.",
     "optional": true,
     "fields": [
+      {
+        "name": "linearNavigation",
+        "type": "boolean",
+        "label": "Linear navigation",
+        "importance": "low",
+        "description": "Enable linear navigation. Users cannot go back to previous slide.",
+        "default": false
+      },
+      {
+        "name": "removeCheckAnswer",
+        "type": "boolean",
+        "label": "Remove Check Answer",
+        "importance": "low",
+        "description": "This option determines whether \"Check\" button should be removed.",
+        "default": false
+      },
       {
         "name": "activeSurface",
         "type": "boolean",

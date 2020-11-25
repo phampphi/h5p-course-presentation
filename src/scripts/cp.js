@@ -1,11 +1,11 @@
 import Parent from 'h5p-parent';
-import SummarySlide from './summary-slide';
+import { jQuery as $ } from './globals';
+import KeywordsMenu from './keyword-menu';
 import NavigationLine from './navigation-line';
 import SlideBackground from './slide-backgrounds';
-import KeywordsMenu from './keyword-menu';
-import { jQuery as $ } from './globals';
-import { flattenArray, addClickAndKeyboardListeners, isFunction, kebabCase, stripHTML, keyCode } from './utils';
 import Slide from './slide.js';
+import SummarySlide from './summary-slide';
+import { addClickAndKeyboardListeners, flattenArray, isFunction, kebabCase, keyCode, stripHTML } from './utils';
 
 /**
  * @const {string}
@@ -93,6 +93,8 @@ let CoursePresentation = function (params, id, extras) {
   }, params.l10n !== undefined ? params.l10n : {});
 
   if (!!params.override) {
+    this.linearNavigation = params.override.linearNavigation;
+    this.removeCheckAnswer = params.override.removeCheckAnswer;
     this.activeSurface = !!params.override.activeSurface;
     this.hideSummarySlide = !!params.override.hideSummarySlide;
     this.enablePrintButton = !!params.override.enablePrintButton;
@@ -116,7 +118,11 @@ let CoursePresentation = function (params, id, extras) {
       this.googleShareUrl = params.override.social.googleShareUrl;
     }
   }
-
+  if (!!params.timeSetting) {
+    this.totalTime = params.timeSetting.totalTime;
+    this.timeupMessage = params.timeSetting.timeupMessage || 'Time up';
+  }
+  
   this.keywordMenu = new KeywordsMenu({
     l10n : this.l10n,
     currentIndex: this.previousState !== undefined ? this.previousState.progress : 0
@@ -192,6 +198,55 @@ CoursePresentation.prototype.slideHasAnsweredTask = function (index) {
     .some(task => task.getAnswerGiven());
 };
 
+CoursePresentation.prototype.initTimer = function ($container) {
+  let timerDiv = $container.find('.h5p-timer');
+  if (this.isEditor() || this.totalTime === undefined || this.totalTime === 0){
+    timerDiv.css('visibility', 'hidden');
+    return;
+  }
+
+  let cpTimer = new H5P.Timer();
+  cpTimer.setMode(H5P.Timer.BACKWARD);
+  cpTimer.setClockTime(this.totalTime * 1000);
+
+  cpTimer.notify('every_second', function() { timerDiv.html(H5P.Timer.toTimecode(cpTimer.getTime())); });
+  cpTimer.on('stop', function() {
+    if (this.linearNavigation && cpTimer.getTime() <= 0){
+      $container.find('.h5p-wrapper').html(this.timeupMessage);
+    }
+  }.bind(this));
+
+  cpTimer.play();
+}
+
+CoursePresentation.prototype.resetSlideTimer = function ($container) {
+  let slideTimerDiv = $container.find('.h5p-slide-timer');
+  let slideTime = this.slides[this.currentSlideIndex].slideTime;
+  if (this.isEditor() || slideTime === undefined || slideTime === 0){
+    slideTimerDiv.css('visibility', 'hidden');
+    return;
+  }
+
+  var that = this;
+  if (this.slideTimer === undefined){
+    this.slideTimer = new H5P.Timer();
+    this.slideTimer.setMode(H5P.Timer.BACKWARD);
+  }else{
+    this.slideTimer.stop();
+    this.slideTimer.reset();
+    slideTimerDiv.html('');
+  }
+  
+  this.slideTimer.setClockTime(slideTime * 1000);
+  this.slideTimer.notify('every_second', function() { slideTimerDiv.html(H5P.Timer.toTimecode(that.slideTimer.getTime())); });
+  this.slideTimer.play();
+
+  this.slideTimer.on('stop', function() {
+    if (this.linearNavigation && this.slideTimer.getTime() <= 0 && this.currentSlideIndex < this.slides.length - 1)
+      this.jumpToSlide(this.currentSlideIndex + 1);
+  }.bind(this));
+}
+
 /**
  * Render the presentation inside the given container.
  *
@@ -207,6 +262,7 @@ CoursePresentation.prototype.attach = function ($container) {
   }
 
   var html =
+          '<div class="h5p-timer-wrapper"><span class="h5p-slide-timer"></span><span class="h5p-timer"></span></div>' +
           '<div class="h5p-keymap-explanation hidden-but-read">' + this.l10n.accessibilitySlideNavigationExplanation + '</div>' +
           '<div class="h5p-fullscreen-announcer hidden-but-read" aria-live="polite"></div>' +
           '<div class="h5p-wrapper" tabindex="0" aria-label="' + this.l10n.accessibilityCanvasLabel + '">' +
@@ -324,6 +380,9 @@ CoursePresentation.prototype.attach = function ($container) {
   // Create slides and retrieve keyword title details
   this.createSlides();
 
+  this.initTimer(this.$container);
+  this.resetSlideTimer(this.$container);
+
   // We have always attached all elements on current slide
   this.elementsAttached[this.currentSlideIndex] = true;
 
@@ -422,6 +481,8 @@ CoursePresentation.prototype.attach = function ($container) {
   if (this.previousState && this.previousState.progress) {
     this.jumpToSlide(this.previousState.progress);
   }
+  else
+    this.activateAudioRecorder(0);
 };
 
 /**
@@ -806,6 +867,9 @@ CoursePresentation.prototype.focus = function () {
  * @param {number} index
  */
 CoursePresentation.prototype.keywordClick = function (index) {
+  if (this.linearNavigation)
+    return;
+    
   if (this.shouldHideKeywordsAfterSelect()) {
     // Auto-hide keywords list
     this.hideKeywords();
@@ -857,6 +921,7 @@ CoursePresentation.prototype.setElementsOverride = function (override) {
  */
 CoursePresentation.prototype.attachElements = function ($slide, index) {
   if (this.elementsAttached[index] !== undefined) {
+    this.activateAudioRecorder(index);
     return; // Already attached
   }
 
@@ -874,6 +939,7 @@ CoursePresentation.prototype.attachElements = function ($slide, index) {
   }, {'bubbles': true, 'external': true});
 
   this.elementsAttached[index] = true;
+  this.activateAudioRecorder(index);
 };
 
 /**
@@ -950,7 +1016,6 @@ CoursePresentation.prototype.attachElement = function (element, instance, $slide
         instance.on('controls', handleIV);
       }
     }
-
     // For first slide
     this.setOverflowTabIndex();
   }
@@ -971,6 +1036,25 @@ CoursePresentation.prototype.attachElement = function (element, instance, $slide
 
   return $elementContainer;
 };
+
+CoursePresentation.prototype.activateAudioRecorder = function(index){
+  if (!this.isCurrentSlide(index))
+    return;
+
+  let slide = this.slides[index];
+  let instances = this.elementInstances[index];
+  // activate the current slide's audio recorder
+  if (slide.elements !== undefined) {
+    for (var i = 0; i < slide.elements.length; i++) {
+      let element = slide.elements[i];
+      let instance = instances[i];
+      if (element.action !== undefined && element.action.library.substr(0, 17) === 'H5P.AudioRecorder'
+          && instance.activated !== undefined 
+          && (instance.activated instanceof Function || typeof instance.activated === 'function')) 
+        instance.activated();
+    }
+  }
+}
 
 /**
  * Disables tab indexes behind a popup container
@@ -1638,6 +1722,8 @@ CoursePresentation.prototype.previousSlide = function (noScroll) {
   if (!$prev.length) {
     return false;
   }
+  if (this.linearNavigation)
+    return false;
 
   return this.jumpToSlide($prev.index(), noScroll, false);
 };
@@ -1723,6 +1809,10 @@ CoursePresentation.prototype.jumpToSlide = function (slideNumber, noScroll = fal
 
   // Attach elements for this slide
   this.attachElements(this.$current, slideNumber);
+  if (this.removeCheckAnswer)
+    $(".h5p-question-check-answer").remove();
+  
+  this.resetSlideTimer(this.$container);
 
   // Attach elements for next slide
   var $nextSlide = this.$current.next();
