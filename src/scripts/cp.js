@@ -117,8 +117,9 @@ let CoursePresentation = function (params, id, extras) {
       this.googleShareUrl = params.override.social.googleShareUrl;
     }
   }
-  if (!!params.timeLimit) {
-    this.totalTime = params.timeLimit;
+  if (!!params.timeSetting) {
+    this.totalTime = params.timeSetting.totalTime;
+    this.timeupMessage = params.timeSetting.timeupMessage || 'Time up';
   }
   
   this.keywordMenu = new KeywordsMenu({
@@ -197,34 +198,35 @@ CoursePresentation.prototype.slideHasAnsweredTask = function (index) {
 };
 
 CoursePresentation.prototype.initTimer = function ($container) {
-  if (this.isEditor() || this.totalTime === undefined || this.totalTime === 0)
-    return;
-
   let timerDiv = $container.find('.h5p-timer');
-  if (timerDiv === undefined)
+  if (this.isEditor() || this.totalTime === undefined || this.totalTime === 0){
+    timerDiv.css('visibility', 'hidden');
     return;
+  }
+
   let cpTimer = new H5P.Timer();
   cpTimer.setMode(H5P.Timer.BACKWARD);
   cpTimer.setClockTime(this.totalTime * 1000);
 
   cpTimer.notify('every_second', function() { timerDiv.html(H5P.Timer.toTimecode(cpTimer.getTime())); });
+  cpTimer.on('stop', function() {
+    if (this.linearNavigation && cpTimer.getTime() <= 0){
+      $container.find('.h5p-wrapper').html(this.timeupMessage);
+    }
+  }.bind(this));
+
   cpTimer.play();
 }
 
 CoursePresentation.prototype.resetSlideTimer = function ($container) {
-  if (this.isEditor())
+  let slideTimerDiv = $container.find('.h5p-slide-timer');
+  let slideTime = this.slides[this.currentSlideIndex].slideTime;
+  if (this.isEditor() || slideTime === undefined || slideTime === 0){
+    slideTimerDiv.css('visibility', 'hidden');
     return;
+  }
 
   var that = this;
-
-  let slideTime = this.slides[this.currentSlideIndex].slideTime;
-  if (slideTime === undefined)
-    return;
-    
-  let slideTimerDiv = $container.find('.h5p-slide-timer');
-  if (slideTimerDiv === undefined)
-    return;
-
   if (this.slideTimer === undefined){
     this.slideTimer = new H5P.Timer();
     this.slideTimer.setMode(H5P.Timer.BACKWARD);
@@ -239,7 +241,7 @@ CoursePresentation.prototype.resetSlideTimer = function ($container) {
   this.slideTimer.play();
 
   this.slideTimer.on('stop', function() {
-    if (this.slideTimer.getTime() <= 0 && this.currentSlideIndex < this.slides.length - 1)
+    if (this.linearNavigation && this.slideTimer.getTime() <= 0 && this.currentSlideIndex < this.slides.length - 1)
       this.jumpToSlide(this.currentSlideIndex + 1);
   }.bind(this));
 }
@@ -259,7 +261,7 @@ CoursePresentation.prototype.attach = function ($container) {
   }
 
   var html =
-          '<div class="h5p-timer"></div>' +
+          '<div class="h5p-timer-wrapper"><span class="h5p-slide-timer"></span><span class="h5p-timer"></span></div>' +
           '<div class="h5p-keymap-explanation hidden-but-read">' + this.l10n.accessibilitySlideNavigationExplanation + '</div>' +
           '<div class="h5p-fullscreen-announcer hidden-but-read" aria-live="polite"></div>' +
           '<div class="h5p-wrapper" tabindex="0" aria-label="' + this.l10n.accessibilityCanvasLabel + '">' +
@@ -269,7 +271,6 @@ CoursePresentation.prototype.attach = function ($container) {
           '    <div class="h5p-presentation-wrapper">' +
           '      <div class="h5p-keywords-wrapper"></div>' +
           '     <div class="h5p-slides-wrapper"></div>' +
-          '     <div class="h5p-slide-timer"></div>' +
           '    </div>' +
           '  </div>' +
           '  <nav class="h5p-cp-navigation">' +

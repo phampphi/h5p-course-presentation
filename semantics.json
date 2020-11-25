@@ -658,7 +658,7 @@
     ]
   },
   {
-    "name": "timeLimit",
+    "name": "timeSetting",
     "type": "group",
     "label": "Time settings.",
     "importance": "low",
@@ -676,6 +676,14 @@
         "min": 0,
         "max": 7200,
         "default": 0
+      },
+      {
+        "name": "timeupMessage",
+        "type": "text",
+        "label": "Time-up Message",
+        "importance": "low",
+        "description": "The message to be displayed when the time is up.",
+        "optional": true
       }
     ]
   },

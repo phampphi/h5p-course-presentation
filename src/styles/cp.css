@@ -824,3 +824,15 @@
   margin-left: 0.1em;
   vertical-align: middle;
 }
+
+.h5p-timer-wrapper{
+  text-align: right;
+}
+.h5p-slide-timer::before {
+  content: "\1F551";
+  margin-right: 3px;
+}
+.h5p-slide-timer::after{
+  content: "/";
+  margin: 0px 3px 0px 3px;
+}
