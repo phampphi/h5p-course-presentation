@@ -83,14 +83,16 @@ const SummarySlide = (function () {
       }
 
       // Update slide links
-      var links = that.$summarySlide.find('.h5p-td > .h5p-slide-link');
-      links.each(function () {
-        var slideLink = $(this);
-        slideLink.click(function (event) {
-          that.cp.jumpToSlide(parseInt(slideLink.data('slide'), 10) - 1);
-          event.preventDefault();
+      if (!that.cp.linearNavigation){
+        var links = that.$summarySlide.find('.h5p-td > .h5p-slide-link');
+        links.each(function () {
+          var slideLink = $(this);
+          slideLink.click(function (event) {
+            that.cp.jumpToSlide(parseInt(slideLink.data('slide'), 10) - 1);
+            event.preventDefault();
+          });
         });
-      });
+      }
     }
 
     // Button container ref
@@ -172,12 +174,12 @@ const SummarySlide = (function () {
       tds +=
         '<tr>' +
           '<td class="h5p-td h5p-summary-task-title">' +
-            '<a href="#" class="h5p-slide-link"  aria-label=" ' +
+            (that.cp.linearNavigation ? '<span ' : '<a href="#" class="h5p-slide-link" ') + 'aria-label="' +
               that.cp.l10n.slide + ' ' + slideScores[i].slide + ': ' + (slideDescription.replace(/(<([^>]+)>)/ig, "")) + ' ' +
               slidePercentageScore + '%' +
               '" data-slide="' +
               slideScores[i].slide + '">' + that.cp.l10n.slide + ' ' + slideScores[i].slide + ': ' + (slideDescription.replace(/(<([^>]+)>)/ig, "")) +
-            '</a>' +
+              (that.cp.linearNavigation ? '</span>' : '</a>') +
           '</td>' +
           '<td class="h5p-td h5p-summary-score-bar">' +
             '<p class="hidden-but-read">' + slidePercentageScore + '%' + '</p>' +
