@@ -180,6 +180,9 @@ CoursePresentation.prototype.getCurrentState = function () {
       }
     }
   }
+  // Get current time
+  state.cpTime = this.cpTimer ? this.cpTimer.getTime() : undefined;
+  state.slideTime = this.slideTimer ? this.slideTimer.getTime() : undefined;
 
   return state;
 };
@@ -199,30 +202,34 @@ CoursePresentation.prototype.slideHasAnsweredTask = function (index) {
 };
 
 CoursePresentation.prototype.initTimer = function ($container) {
+  const totalTime = (this.previousState && this.previousState.cpTime) ? this.previousState.cpTime : (this.totalTime * 1000);
   let timerDiv = $container.find('.h5p-timer');
-  if (this.isEditor() || this.totalTime === undefined || this.totalTime === 0){
+  if (this.isEditor() || this.totalTime === undefined || totalTime <= 0){
     timerDiv.css('visibility', 'hidden');
     return;
   }
 
-  let cpTimer = new H5P.Timer();
-  cpTimer.setMode(H5P.Timer.BACKWARD);
-  cpTimer.setClockTime(this.totalTime * 1000);
+  this.cpTimer = new H5P.Timer();
+  this.cpTimer.setMode(H5P.Timer.BACKWARD);
+  this.cpTimer.setClockTime(totalTime);
 
-  cpTimer.notify('every_second', function() { timerDiv.html(H5P.Timer.toTimecode(cpTimer.getTime())); });
-  cpTimer.on('stop', function() {
-    if (this.linearNavigation && cpTimer.getTime() <= 0){
-      $container.find('.h5p-wrapper').html(this.timeupMessage);
+  this.cpTimer.notify('every_second', function() { 
+    timerDiv.html(H5P.Timer.toTimecode(this.cpTimer.getTime())); 
+  }.bind(this));
+  this.cpTimer.on('stop', function() {
+    if (this.linearNavigation && this.cpTimer.getTime() <= 0){
+      //$container.find('.h5p-wrapper').html(this.timeupMessage);
+      this.jumpToSlide(this.slides.length - 1); // jump to last summary slide
     }
   }.bind(this));
 
-  cpTimer.play();
+  this.cpTimer.play();
 }
 
 CoursePresentation.prototype.resetSlideTimer = function ($container) {
   let slideTimerDiv = $container.find('.h5p-slide-timer');
-  let slideTime = this.slides[this.currentSlideIndex].slideTime;
-  if (this.isEditor() || slideTime === undefined || slideTime === 0){
+  let slideTime = this.slides[this.currentSlideIndex].slideTime ? this.slides[this.currentSlideIndex].slideTime : 0;
+  if (this.isEditor() || slideTime === undefined || slideTime <= 0){
     slideTimerDiv.css('visibility', 'hidden');
     return;
   }
@@ -380,9 +387,6 @@ CoursePresentation.prototype.attach = function ($container) {
   // Create slides and retrieve keyword title details
   this.createSlides();
 
-  this.initTimer(this.$container);
-  this.resetSlideTimer(this.$container);
-
   // We have always attached all elements on current slide
   this.elementsAttached[this.currentSlideIndex] = true;
 
@@ -415,6 +419,9 @@ CoursePresentation.prototype.attach = function ($container) {
       this.$current = $summarySlide;
     }
   }
+
+  this.initTimer(this.$container);
+  this.resetSlideTimer(this.$container);
 
   const keywordMenuConfig = this.getKeywordMenuConfig();
 
