@@ -1832,12 +1832,14 @@ CoursePresentation.prototype.jumpToSlide = function (slideNumber, noScroll = fal
 
   // Stop media on old slide
   // this is done no mather what autoplay says
-  var instances = this.elementInstances[previousSlideIndex];
-  if (instances !== undefined) {
-    for (var i = 0; i < instances.length; i++) {
-      if (!this.slides[previousSlideIndex].elements[i].displayAsButton) {
-        // Only pause media elements displayed as posters.
-        that.pauseMedia(instances[i]);
+  if (previousSlideIndex != slideNumber){
+    var instances = this.elementInstances[previousSlideIndex];
+    if (instances !== undefined) {
+      for (var i = 0; i < instances.length; i++) {
+        if (!this.slides[previousSlideIndex].elements[i].displayAsButton) {
+          // Only pause media elements displayed as posters.
+          that.pauseMedia(instances[i]);
+        }
       }
     }
   }
