@@ -1,5 +1,5 @@
 /* DroidSans font by Steve Matteson licensed under Apache License, version 2.0 - See DroidSans/LICENSE.txt */
-/* @font-face {
+@font-face {
   font-family: 'H5PDroidSans';
   src: url('../fonts/DroidSans.ttf') format('truetype');
   font-weight: normal;
@@ -8,10 +8,10 @@
   font-family: 'H5PDroidSans';
   src: url('../fonts/DroidSans-Bold.ttf') format('truetype');
   font-weight: bold;
-} */
+}
 
 /* IcoMoon font licensed under the GNU General Public License: http://www.gnu.org/licenses/gpl.html */
-/* @font-face {
+@font-face {
   font-family: 'H5PCoursePresentation';
   src:url('../fonts/H5P.eot?7pqlet');
   src:url('../fonts/H5P.eot?7pqlet#iefix') format('embedded-opentype'),
@@ -20,7 +20,7 @@
   url('../fonts/H5P.svg?7pqlet#H5P') format('svg');
   font-weight: normal;
   font-style: normal;
-} */
+}
 
 .h5p-container.h5p-course-presentation {
   margin-bottom: 0em;
@@ -38,7 +38,7 @@
 }
 
 .h5p-course-presentation {
-  /* font-family: H5PDroidSans, sans-serif; */
+  font-family: Arial,Helvetica,sans-serif;
   color: #323232;
   line-height: 1.25;
 }
