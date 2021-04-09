@@ -178,7 +178,7 @@ const SummarySlide = (function () {
               that.cp.l10n.slide + ' ' + slideScores[i].slide + ': ' + (slideDescription.replace(/(<([^>]+)>)/ig, "")) + ' ' +
               slidePercentageScore + '%' +
               '" data-slide="' +
-              slideScores[i].slide + '">' + that.cp.l10n.slide + ' ' + slideScores[i].slide + ': ' + (slideDescription.replace(/(<([^>]+)>)/ig, "")) +
+              slideScores[i].slide + '">' + that.cp.l10n.slide + ' ' + (i+1) + ': ' + (slideDescription.replace(/(<([^>]+)>)/ig, "")) +
               (that.cp.linearNavigation ? '</span>' : '</a>') +
           '</td>' +
           '<td class="h5p-td h5p-summary-score-bar">' +
