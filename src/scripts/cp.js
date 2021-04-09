@@ -247,6 +247,7 @@ CoursePresentation.prototype.resetSlideTimer = function ($container) {
   this.slideTimer.setClockTime(slideTime * 1000);
   this.slideTimer.notify('every_second', function() { slideTimerDiv.html(H5P.Timer.toTimecode(that.slideTimer.getTime())); });
   this.slideTimer.play();
+  slideTimerDiv.css('visibility', 'visible');
 
   this.slideTimer.on('stop', function() {
     if (this.linearNavigation && this.slideTimer.getTime() <= 0 && this.currentSlideIndex < this.slides.length - 1)
